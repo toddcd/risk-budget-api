@@ -8,15 +8,10 @@ const PortfolioService = {
                 'p.user_id',
                 ...portFieldUser,
                 ...fundFieldUser,
-                ...perfFieldUser,
             ).innerJoin(
                 'fund AS f',
                 'f.port_id',
                 'p.port_id'
-            ).innerJoin(
-                'fund_perf AS perf',
-                'perf.fund_id',
-                'f.fund_id'
             )
             .where('p.user_id', user_id)
     },
