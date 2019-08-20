@@ -4,7 +4,7 @@ const PortfolioService = require('./portfolio-service');
 const {requireAuth} = require('../middleware/jwt-auth');
 
 const PortfolioRouter = express.Router();
-const jsonBodyParser = express.json();
+const jsonBodyParser = express.json({limit: '50mb'});
 
 PortfolioRouter
     .route('/')
@@ -22,7 +22,21 @@ PortfolioRouter
                 }
             })
             .catch(next)
-    }),
+    })
+    .post(jsonBodyParser, (req, res, next) => {
+        const {data} = req.body
+
+        PortfolioService.insertNewPortfolio(
+            req.app.get('db'),
+            data
+        )
+        .then(id => {
+                res.status(200)
+                    //.location(path.posix.join(req.originalUrl, `/${portfolio.port_id}`))
+                    .json(`Created new portfolio id ${id}!`)
+            }).catch(next)
+    })
+    ,
 
     PortfolioRouter
         .route('/:port_id')

@@ -15,7 +15,7 @@ const PortfolioService = {
             )
             .where('p.user_id', user_id)
     },
-    getPortfolioById(db, port_id){
+    getPortfolioById(db, port_id) {
         return db.from('portfolio AS p')
             .select(
                 'p.port_id',
@@ -33,6 +33,49 @@ const PortfolioService = {
                 'f.fund_id'
             )
             .where('p.port_id', port_id)
+    },
+
+    insertNewPortfolio(db, data) {
+        const newPort = {
+            user_id: 1,
+            'name': data.name,
+        }
+        return db('portfolio')
+            .insert(newPort)
+            .returning('port_id')
+            .then(id => {
+                const newFunds = data.funds.map(fund => {
+                    return {
+                        port_id: parseInt(id),
+                        name: fund.name,
+                        ticker: fund.ticker,
+                        weight: fund.weight,
+                        risk: fund.risk,
+                        return: fund.return,
+                    }
+                })
+
+                return db('fund')
+                    .insert(newFunds)
+                    .returning('fund_id')
+
+            }).then(fundIds => {
+                data.funds.map(async (fund, i) => {
+                    const perf = fund.fund_perfs.map(perf => {
+                        const p = {
+                            fund_id: fundIds[i],
+                            perf_date: perf.perf_date,
+                            perf: perf.perf,
+                        }
+                        return p
+                    })
+
+                    await db('fund_perf').insert(perf)
+                })
+            })
+            .catch(err => {
+
+            })
     },
 
     serializePortfolios(portfolios) {
@@ -62,10 +105,8 @@ const fundFieldUser = [
 ]
 const perfFieldUser = [
     {
-        'portfolios:funds:fund_perfs:perf_id': 'perf.perf_id',
         'portfolios:funds:fund_perfs:perf_date': 'perf.perf_date',
         'portfolios:funds:fund_perfs:perf': 'perf.perf',
-        'portfolios:funds:fund_perfs:date_created': 'f.date_created',
     }
 ]
 
@@ -82,12 +123,45 @@ const fundFieldPort = [
 ]
 const perfFieldPort = [
     {
-        'funds:fund_perfs:perf_id': 'perf.perf_id',
         'funds:fund_perfs:perf_date': 'perf.perf_date',
         'funds:fund_perfs:perf': 'perf.perf',
-        'funds:fund_perfs:date_created': 'f.date_created',
     }
 ]
 
 
+async function insertPerformance(db, perf){
+
+
+
+}
+
+
 module.exports = PortfolioService;
+
+
+// db.transaction(trx => {
+//     return db.transacting(trx)
+//         .insert(newPort)
+//         .into('portfolio')
+//         .returning('port_id')
+//         .then(portId => {
+//             console.log('TRANSACTING')
+//             for (let fund in data.funds){
+//                 const newFund = {
+//                     port_id: portId,
+//                     name: fund.name,
+//                     ticker: fund.ticker,
+//                     weight: fund.weight,
+//                     risk : fund.risk,
+//                     return: fund.return,
+//                 }
+//                 db.insert(newFund)
+//                     .into('fund')
+//             }
+//         })
+//         .then(trx.commit)
+//         .catch(err => {
+//             trx.rollback()
+//             throw err;
+//         })
+// })
