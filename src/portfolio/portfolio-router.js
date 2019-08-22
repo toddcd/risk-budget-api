@@ -18,7 +18,6 @@ PortfolioRouter
                     res.status(204).end()
                 } else {
                     res.json(PortfolioService.serializePortfolios(portfolios))
-                    //res.json(portfolios)
                 }
             })
             .catch(next)
@@ -30,13 +29,13 @@ PortfolioRouter
             req.app.get('db'),
             data
         )
-        .then(id => {
+            .then(id => {
+                console.log(id) // Todo - need the ID of newly created portfolio
                 res.status(200)
-                    //.location(path.posix.join(req.originalUrl, `/${portfolio.port_id}`))
+                //.location(path.posix.join(req.originalUrl, `/${id}`))
                     .json(`Created new portfolio id ${id}!`)
             }).catch(next)
-    })
-    ,
+    }),
 
     PortfolioRouter
         .route('/:port_id')
@@ -46,12 +45,48 @@ PortfolioRouter
         })
         .delete((req, res) => {
             const {port_id} = req.params
+
+            // grab fund Ids for deleting child fund and perf records
+            const funds = PortfolioService.serializePortfolios(res.portfolio).funds
+            const fundIds = funds.map(fund => {
+                return fund.fund_id
+            })
+
             PortfolioService.deletePortfolio(
-                req.app.get.db,
-                port_id
+                req.app.get('db'),
+                port_id,
+                fundIds
             ).then(numRowsAffected => {
                 res.status(204).end()
             })
+        })
+        .patch(jsonBodyParser, (req, res) => {
+            const {name, funds} = req.body
+            const portToUpdate = {name, funds}
+
+            const numberOfValues = Object.values(portToUpdate).filter(Boolean).length
+
+            if (numberOfValues === 0) {
+                return res.status(400).json({
+                    error: `Request body must contain: 'name', 'funds' or both`
+                })
+            }
+
+            const updateName = PortfolioService.updateName(
+                req.app.get('db'),
+                req.params.port_id,
+                portToUpdate.name
+            )
+
+            const updateFunds = PortfolioService.updateFunds(
+                req.app.get('db'),
+                portToUpdate.funds
+            )
+
+            Promise.all([updateName, updateFunds])
+                .then(numRowsAffected => {
+                    res.status(204).end()
+                })
         })
 
 /* async/await syntax for promises */
@@ -65,7 +100,7 @@ async function checkPortfolioExists(req, res, next) {
 
         if (portfolio.length === 0)
             return res.status(404).json({
-                error: `Bicycle id ${port_id} doesn't exist`
+                error: `Portfolio id ${port_id} doesn't exist`
             })
 
         res.portfolio = portfolio

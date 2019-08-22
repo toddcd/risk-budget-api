@@ -1,10 +1,19 @@
+-- --------------------------------------------------------------
+-- 1. Insert Users
+-- --------------------------------------------------------------
 INSERT INTO users (user_name, full_name, email, password)
 VALUES
-  ('test', 'test', 'td3studios@gmail.com', '$2a$12$Q6nsqQAFAI3TkvhCTC8CmOBXT/Fi.XxGyhEAu3Jeq2yc3dRq6DVsy')
+  ('test', 'test', 'td3studios@gmail.com', '$2a$12$Q6nsqQAFAI3TkvhCTC8CmOBXT/Fi.XxGyhEAu3Jeq2yc3dRq6DVsy');
 
+-- --------------------------------------------------------------
+-- 2. Insert Portfolios
+-- --------------------------------------------------------------
 INSERT INTO portfolio (user_id, name)
 VALUES (1, 'New Test Portfolio');
 
+-- --------------------------------------------------------------
+-- 3. Insert Funds
+-- --------------------------------------------------------------
 INSERT INTO fund (port_id, ticker, name, weight, risk, return)
 VALUES (1, 'EA', 'Electronic Arts Inc',0.014,0.281,0.015);
 
@@ -20,6 +29,9 @@ VALUES (1, 'URBN', 'Urban Outfitters Inc',0.004,0.374,0.032);
 INSERT INTO fund (port_id, ticker, name, weight, risk, return)
 VALUES (1, 'PVH', 'PVH Corp',0.016,0.205,0.023);
 
+-- --------------------------------------------------------------
+-- 4. Insert Fund Performance
+-- --------------------------------------------------------------
 insert into fund_perf (fund_id, perf_date, perf) VALUES (1 ,'5/20/2019',-0.046987455);
 insert into fund_perf (fund_id, perf_date, perf) VALUES (1 ,'5/17/2019',-0.017575737);
 insert into fund_perf (fund_id, perf_date, perf) VALUES (1 ,'5/16/2019',0.023044364);

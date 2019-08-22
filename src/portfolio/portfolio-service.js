@@ -36,14 +36,17 @@ const PortfolioService = {
     },
 
     insertNewPortfolio(db, data) {
+        let newPortId = 0;
         const newPort = {
             user_id: 1,
             'name': data.name,
         }
+        // 1. Create new Portfolio and get ID
         return db('portfolio')
             .insert(newPort)
             .returning('port_id')
             .then(id => {
+                newPortId = id;
                 const newFunds = data.funds.map(fund => {
                     return {
                         port_id: parseInt(id),
@@ -55,6 +58,7 @@ const PortfolioService = {
                     }
                 })
 
+                // 2. Create associated new Funds and get fund IDs
                 return db('fund')
                     .insert(newFunds)
                     .returning('fund_id')
@@ -70,12 +74,61 @@ const PortfolioService = {
                         return p
                     })
 
+                    // 3. Create associate fund performance
                     await db('fund_perf').insert(perf)
                 })
             })
             .catch(err => {
-
+                throw new Error(err);
             })
+
+        return newPortId[0];
+    },
+    deletePortfolio(db, port_id, fundIds) {
+        // 1. Delete Fund Performance
+        return db('fund_perf')
+            .whereIn('fund_id', fundIds)
+            .del()
+            .then(result => {
+                // 2. Delete Funds
+                return db('fund')
+                    .where('port_id', port_id)
+                    .del()
+                    .then(result => {
+                        // 3. Delete Portfolio
+                        return db('portfolio')
+                            .where('port_id', port_id)
+                            .delete()
+                    })
+            })
+    },
+
+    updateName(db, port_id, name) {
+        if(name) {
+            return db('portfolio')
+                .where({port_id})
+                .update({name: name})
+        }else{
+            return Promise.resolve()
+        }
+    },
+
+    updateFunds(db, funds) {
+        if(funds) {
+            for (idx in funds) {
+                const fund_id = funds[idx].fund_id
+                const update = {
+                    weight: funds[idx].weight,
+                    risk: funds[idx].risk,
+                    return: funds[idx].return
+                }
+                return db('fund')
+                    .where({fund_id})
+                    .update(update)
+            }
+        }else{
+            return Promise.resolve()
+        }
     },
 
     serializePortfolios(portfolios) {
@@ -128,40 +181,4 @@ const perfFieldPort = [
     }
 ]
 
-
-async function insertPerformance(db, perf){
-
-
-
-}
-
-
 module.exports = PortfolioService;
-
-
-// db.transaction(trx => {
-//     return db.transacting(trx)
-//         .insert(newPort)
-//         .into('portfolio')
-//         .returning('port_id')
-//         .then(portId => {
-//             console.log('TRANSACTING')
-//             for (let fund in data.funds){
-//                 const newFund = {
-//                     port_id: portId,
-//                     name: fund.name,
-//                     ticker: fund.ticker,
-//                     weight: fund.weight,
-//                     risk : fund.risk,
-//                     return: fund.return,
-//                 }
-//                 db.insert(newFund)
-//                     .into('fund')
-//             }
-//         })
-//         .then(trx.commit)
-//         .catch(err => {
-//             trx.rollback()
-//             throw err;
-//         })
-// })
