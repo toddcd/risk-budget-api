@@ -39,7 +39,7 @@ const PortfolioService = {
         let newPortId = 0;
         const newPort = {
             user_id: 1,
-            'name': data.name,
+            name: data.name,
         }
         // 1. Create new Portfolio and get ID
         return db('portfolio')
@@ -62,24 +62,26 @@ const PortfolioService = {
                 return db('fund')
                     .insert(newFunds)
                     .returning('fund_id')
-
             }).then(fundIds => {
-                data.funds.map(async (fund, i) => {
-                    const perf = fund.fund_perfs.map(perf => {
+                data.funds.forEach(async (fund, i) => {
+                    const perf = fund.fund_perf.map(per => {
+                        const perfDate = Object.keys(per)[0]
+                        const perfValue = Object.values(per)[0]
                         const p = {
                             fund_id: fundIds[i],
-                            perf_date: perf.perf_date,
-                            perf: perf.perf,
+                            perf_date: perfDate,
+                            perf: parseFloat(perfValue),
                         }
                         return p
                     })
 
                     // 3. Create associated fund performance
-                    await db('fund_perf').insert(perf)
+                    await db('fund_perf')
+                        .insert(perf)
+                        .catch(err => {
+                            console.log(err)
+                        })
                 })
-            })
-            .catch(err => {
-                throw new Error(err);
             })
 
         return newPortId[0];
@@ -104,29 +106,29 @@ const PortfolioService = {
     },
 
     updateName(db, port_id, name) {
-        if(name) {
+        if (name) {
             return db('portfolio')
                 .where({port_id})
                 .update({name: name})
-        }else{
+        } else {
             return Promise.resolve()
         }
     },
 
     updateFunds(db, funds) {
-        if(funds) {
+        if (funds) {
             Promise.all(funds.map((fund, idx) => {
                 const fund_id = funds[idx].fund_id
-                    const update = {
-                        weight: funds[idx].weight,
-                        risk: funds[idx].risk,
-                        return: funds[idx].return
-                    }
+                const update = {
+                    weight: funds[idx].weight,
+                    risk: funds[idx].risk,
+                    return: funds[idx].return
+                }
                 return db('fund')
                     .where({fund_id})
                     .update(update)
             }))
-        }else{
+        } else {
             return Promise.resolve()
         }
     },

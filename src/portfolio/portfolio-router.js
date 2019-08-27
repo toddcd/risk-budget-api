@@ -23,8 +23,7 @@ PortfolioRouter
             .catch(next)
     })
     .post(jsonBodyParser, (req, res, next) => {
-        const {data} = req.body
-
+        const { data } = req.body
         PortfolioService.insertNewPortfolio(
             req.app.get('db'),
             data
