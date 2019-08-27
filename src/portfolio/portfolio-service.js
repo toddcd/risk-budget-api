@@ -74,7 +74,7 @@ const PortfolioService = {
                         return p
                     })
 
-                    // 3. Create associate fund performance
+                    // 3. Create associated fund performance
                     await db('fund_perf').insert(perf)
                 })
             })
@@ -115,17 +115,17 @@ const PortfolioService = {
 
     updateFunds(db, funds) {
         if(funds) {
-            for (idx in funds) {
+            Promise.all(funds.map((fund, idx) => {
                 const fund_id = funds[idx].fund_id
-                const update = {
-                    weight: funds[idx].weight,
-                    risk: funds[idx].risk,
-                    return: funds[idx].return
-                }
+                    const update = {
+                        weight: funds[idx].weight,
+                        risk: funds[idx].risk,
+                        return: funds[idx].return
+                    }
                 return db('fund')
                     .where({fund_id})
                     .update(update)
-            }
+            }))
         }else{
             return Promise.resolve()
         }
