@@ -8,9 +8,9 @@ const jsonBodyParser = express.json({limit: '50mb'});
 
 PortfolioRouter
     .route('/')
-    // .all(requireAuth)
+    .all(requireAuth)
     .get((req, res, next) => {
-        PortfolioService.getPortfolios(req.app.get('db'), 1)
+        PortfolioService.getPortfolios(req.app.get('db'), req.user.user_id)
             .then(portfolios => {
                 // if current user has no portfolios
                 // return 204 for not content
@@ -22,11 +22,12 @@ PortfolioRouter
             })
             .catch(next)
     })
-    .post(jsonBodyParser, (req, res, next) => {
+    .post(requireAuth, jsonBodyParser, (req, res, next) => {
         const { data } = req.body
         PortfolioService.insertNewPortfolio(
             req.app.get('db'),
-            data
+            data,
+            req.user.user_id
         )
             .then(id => {
                 console.log(id) // Todo - need the ID of newly created portfolio

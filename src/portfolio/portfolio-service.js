@@ -35,10 +35,10 @@ const PortfolioService = {
             .where('p.port_id', port_id)
     },
 
-    insertNewPortfolio(db, data) {
+    insertNewPortfolio(db, data, user_id) {
         let newPortId = 0;
         const newPort = {
-            user_id: 1,
+            user_id: user_id,
             name: data.name,
         }
         // 1. Create new Portfolio and get ID
