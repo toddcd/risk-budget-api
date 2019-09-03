@@ -1,5 +1,9 @@
 # Risk budgeting tool api
 
+This is the client api for the Risk Budgeting Tool
+
+https://td3-riskbudget.now.sh/
+
 ## Route Endpoints
 1. '/api/register'
     * POST '/register'
