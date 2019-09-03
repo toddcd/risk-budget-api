@@ -23,17 +23,17 @@ PortfolioRouter
             .catch(next)
     })
     .post(requireAuth, jsonBodyParser, (req, res, next) => {
-        const { data } = req.body
+        const {data} = req.body
         PortfolioService.insertNewPortfolio(
             req.app.get('db'),
             data,
             req.user.user_id
         )
             .then(id => {
-                console.log(id) // Todo - need the ID of newly created portfolio
+                const port_id = {port_id: id}
                 res.status(200)
-                //.location(path.posix.join(req.originalUrl, `/${id}`))
-                    .json(`Created new portfolio id ${id}!`)
+                    .location(path.posix.join(req.originalUrl, `/${id}`))
+                return res.json(port_id)
             }).catch(next)
     }),
 

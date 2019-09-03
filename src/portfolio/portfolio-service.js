@@ -82,9 +82,8 @@ const PortfolioService = {
                             console.log(err)
                         })
                 })
+                return newPortId[0];
             })
-
-        return newPortId[0];
     },
     deletePortfolio(db, port_id, fundIds) {
         // 1. Delete Fund Performance
